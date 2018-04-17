@@ -1,0 +1,42 @@
+{
+  "name": "game",
+  "version": "1.0.0",
+  "description": "WebGL game made with three.js",
+  "main": "server.js",
+  "scripts": {
+    "start": "browserify public/js/main.js -t babelify --outfile public/js/bundle.js && nodemon server.js",
+    "bundle": "browserify public/js/main.js -t babelify --outfile public/js/bundle.js"
+  },
+  "author": "Justin Cook",
+  "license": "ISC",
+  "dependencies": {
+    "@types/three": "^0.91.7",
+    "express": "^4.16.3",
+    "three": "^0.91.0",
+    "three-orbit-controls": "^82.1.0"
+  },
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
+    "babelify": "^8.0.0",
+    "browserify": "^16.1.1",
+    "nodemon": "^1.17.3"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "node_modules",
+      "bundle.js"
+    ],
+    "verbose": true,
+    "watch": [
+      "public",
+      "server.js"
+    ],
+    "ext": "js",
+    "events": {
+      "restart": "npm run bundle"
+    }
+  }
+}
