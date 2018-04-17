@@ -13,6 +13,8 @@ class World {
     this.land = new Mesh(this.plane, this.material);
     this.tree = tree;
     this.trees = [];
+    this.renderFloor = 200;
+    console.log(this.trees);
     this.world = new Mesh(this.plane, this.material);
     for(var i = 0; i < this.world.geometry.vertices.length; i++) {
       this.world.geometry.vertices[i].z += pos.z;
@@ -47,6 +49,11 @@ class World {
       if(this.trees[i].position.z > camera.position.z - 0.5 && this.trees[i].position.z < camera.position.z + 0.5 &&
       this.trees[i].position.x > camera.position.x - 0.5 && this.trees[i].position.x < camera.position.x + 0.5)
         console.log("HIT!!");
+      if(this.trees[i].position.z >= camera.position.z) {
+        console.log(this.trees[i].position.z, camera.position.z);
+        this.trees[i].position.z = -200;
+        this.trees[i].position.x = Math.random() * (15 - -15) + -15;
+      }
     }
   }
 

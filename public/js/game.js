@@ -17,12 +17,9 @@ class Game {
   createScene() {
     this.scene = new Scene();
     this.light = new Light(this.scene);
-    this.fog = new Fog(0x333333, 50, 200);
+    this.fog = new Fog(0x333333, 30, 50);
     this.pos = { x: 0, y: 0, z: -180 };
-    this.world1 = new World(this.scene, this.tree, this.pos);
-    this.pos.z *= 3;
-    this.world2 = new World(this.scene, this.tree, this.pos);
-    this.worlds = [this.world1, this.world2];
+    this.world = new World(this.scene, this.tree, this.pos);
 
     this.speed = 0.8;
     this.tracker = 0;
@@ -38,8 +35,7 @@ class Game {
     document.onkeyup = this.handleKeyUp;
     this.scene.fog = this.fog;
     this.scene = this.light.renderLight();
-    this.scene = this.worlds[0].renderWorld();
-    this.scene = this.worlds[1].renderWorld();
+    this.scene = this.world.renderWorld();
 
   }
   handleKeyUp = (event) => {
@@ -52,7 +48,7 @@ class Game {
   }
   handleKeyPress = (event) => {
     if (event.keyCode == 37) {
-      this.camera.position.y = Math.random() * (3 - 2) + 2;
+      //this.camera.position.y = Math.random() * (3 - 2) + 2;
       this.camera.rotation.z = -0.1;
       if (this.camera.position.x < 20 && this.camera.position.x > -20)
         this.camera.position.x += -2;
@@ -60,7 +56,7 @@ class Game {
         this.camera.position.x += 1;
     }
     else if (event.keyCode == 39) {
-      this.camera.position.y = Math.random() * (3 - 2) + 2;
+      //this.camera.position.y = Math.random() * (3 - 2) + 2;
       this.camera.rotation.z = 0.1;
       if (this.camera.position.x < 20 && this.camera.position.x > -20)
         this.camera.position.x += 2;
@@ -72,20 +68,11 @@ class Game {
   update = () => {
     requestAnimationFrame(this.update);
     this.tracker += this.speed;
-    this.worlds[0].world.position.z += this.speed;
-    this.worlds[1].world.position.z += this.speed;
-    this.worlds[0].updateTreeLocation(this.speed, this.camera);
-    this.worlds[1].updateTreeLocation(this.speed, this.camera);
-    if (this.tracker >= 400) {
+    this.world.world.position.z += this.speed;
+    this.world.updateTreeLocation(this.speed, this.camera);
+    if(this.tracker >= this.world.renderFloor){
       this.tracker = 0;
-      this.pos.z = -350;
-      let temp = new World(this.scene, this.tree, this.pos);
-      temp.renderWorld();
-      this.worlds.push(temp);
-    }
-    if (this.worlds.length > 2) {
-      this.worlds[0].removeWorld();
-      this.worlds.shift();
+      this.world.world.position.set(this.pos.x, this.pos.y, -10);
     }
     this.renderer.render(this.scene, this.camera);
   }

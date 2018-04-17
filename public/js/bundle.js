@@ -48564,11 +48564,11 @@ var Game = function () {
 
     this.handleKeyPress = function (event) {
       if (event.keyCode == 37) {
-        _this.camera.position.y = Math.random() * (3 - 2) + 2;
+        //this.camera.position.y = Math.random() * (3 - 2) + 2;
         _this.camera.rotation.z = -0.1;
         if (_this.camera.position.x < 20 && _this.camera.position.x > -20) _this.camera.position.x += -2;else _this.camera.position.x += 1;
       } else if (event.keyCode == 39) {
-        _this.camera.position.y = Math.random() * (3 - 2) + 2;
+        //this.camera.position.y = Math.random() * (3 - 2) + 2;
         _this.camera.rotation.z = 0.1;
         if (_this.camera.position.x < 20 && _this.camera.position.x > -20) _this.camera.position.x += 2;else _this.camera.position.x += -1;
       }
@@ -48577,20 +48577,11 @@ var Game = function () {
     this.update = function () {
       requestAnimationFrame(_this.update);
       _this.tracker += _this.speed;
-      _this.worlds[0].world.position.z += _this.speed;
-      _this.worlds[1].world.position.z += _this.speed;
-      _this.worlds[0].updateTreeLocation(_this.speed, _this.camera);
-      _this.worlds[1].updateTreeLocation(_this.speed, _this.camera);
-      if (_this.tracker >= 400) {
+      _this.world.world.position.z += _this.speed;
+      _this.world.updateTreeLocation(_this.speed, _this.camera);
+      if (_this.tracker >= _this.world.renderFloor) {
         _this.tracker = 0;
-        _this.pos.z = -350;
-        var temp = new _world2.default(_this.scene, _this.tree, _this.pos);
-        temp.renderWorld();
-        _this.worlds.push(temp);
-      }
-      if (_this.worlds.length > 2) {
-        _this.worlds[0].removeWorld();
-        _this.worlds.shift();
+        _this.world.world.position.set(_this.pos.x, _this.pos.y, -10);
       }
       _this.renderer.render(_this.scene, _this.camera);
     };
@@ -48605,12 +48596,9 @@ var Game = function () {
     value: function createScene() {
       this.scene = new _three.Scene();
       this.light = new _light2.default(this.scene);
-      this.fog = new _three.Fog(0x333333, 50, 200);
+      this.fog = new _three.Fog(0x333333, 30, 50);
       this.pos = { x: 0, y: 0, z: -180 };
-      this.world1 = new _world2.default(this.scene, this.tree, this.pos);
-      this.pos.z *= 3;
-      this.world2 = new _world2.default(this.scene, this.tree, this.pos);
-      this.worlds = [this.world1, this.world2];
+      this.world = new _world2.default(this.scene, this.tree, this.pos);
 
       this.speed = 0.8;
       this.tracker = 0;
@@ -48626,8 +48614,7 @@ var Game = function () {
       document.onkeyup = this.handleKeyUp;
       this.scene.fog = this.fog;
       this.scene = this.light.renderLight();
-      this.scene = this.worlds[0].renderWorld();
-      this.scene = this.worlds[1].renderWorld();
+      this.scene = this.world.renderWorld();
     }
   }, {
     key: 'start',
@@ -48808,6 +48795,8 @@ var World = function () {
     this.land = new _three.Mesh(this.plane, this.material);
     this.tree = tree;
     this.trees = [];
+    this.renderFloor = 200;
+    console.log(this.trees);
     this.world = new _three.Mesh(this.plane, this.material);
     for (var i = 0; i < this.world.geometry.vertices.length; i++) {
       this.world.geometry.vertices[i].z += pos.z;
@@ -48846,6 +48835,11 @@ var World = function () {
       for (var i = 0; i < this.trees.length; i++) {
         this.trees[i].position.z += speed;
         if (this.trees[i].position.z > camera.position.z - 0.5 && this.trees[i].position.z < camera.position.z + 0.5 && this.trees[i].position.x > camera.position.x - 0.5 && this.trees[i].position.x < camera.position.x + 0.5) console.log("HIT!!");
+        if (this.trees[i].position.z >= camera.position.z) {
+          console.log(this.trees[i].position.z, camera.position.z);
+          this.trees[i].position.z = -200;
+          this.trees[i].position.x = Math.random() * (15 - -15) + -15;
+        }
       }
     }
   }, {
