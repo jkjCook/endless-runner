@@ -2,7 +2,8 @@
 const THREE = require('three');
 const OrbitControls = require('three-orbit-controls')(THREE);
 
-import { Scene, PerspectiveCamera, WebGLRenderer, MeshBasicMaterial, Fog } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, MeshBasicMaterial, Fog, Vector3, Clock } from 'three';
+import { TweenMax } from 'gsap';
 import Light from './light';
 import Tree from './tree';
 import World from './world';
@@ -12,6 +13,9 @@ class Game {
     this.tree = tree;
     this.sceneWidth = width;
     this.sceneHeight = height;
+    this.clock = new Clock();
+    this.keyDown = false;
+    this.keyUp = false;
   }
 
   createScene() {
@@ -36,45 +40,61 @@ class Game {
     this.scene.fog = this.fog;
     this.scene = this.light.renderLight();
     this.scene = this.world.renderWorld();
+    this.clock.start();
 
   }
   handleKeyUp = (event) => {
-    if (event.keyCode == 37) {
-      this.camera.rotation.z = 0;
-    }
-    else if (event.keyCode == 39) {
-      this.camera.rotation.z = 0
-    }
+    this.keyUp = true;
+    this.keyDown = false;
+    this.keyCode = event.keyCode;
   }
   handleKeyPress = (event) => {
-    if (event.keyCode == 37) {
-      //this.camera.position.y = Math.random() * (3 - 2) + 2;
-      this.camera.rotation.z = -0.1;
-      if (this.camera.position.x < 20 && this.camera.position.x > -20)
-        this.camera.position.x += -2;
-      else
-        this.camera.position.x += 1;
-    }
-    else if (event.keyCode == 39) {
-      //this.camera.position.y = Math.random() * (3 - 2) + 2;
-      this.camera.rotation.z = 0.1;
-      if (this.camera.position.x < 20 && this.camera.position.x > -20)
-        this.camera.position.x += 2;
-      else
-        this.camera.position.x += -1;
-
-    }
+    this.keyDown = true;
+    this.keyUp = false;
+    this.keyCode = event.keyCode;
   }
+
   update = () => {
     requestAnimationFrame(this.update);
+    this.delta = this.clock.getDelta();
     this.tracker += this.speed;
     this.world.world.position.z += this.speed;
     this.world.updateTreeLocation(this.speed, this.camera);
-    if(this.tracker >= this.world.renderFloor){
+    if (this.tracker >= this.world.renderFloor) {
       this.tracker = 0;
       this.world.world.position.set(this.pos.x, this.pos.y, -10);
     }
+    if (this.keyDown) {
+      let x;
+      if (this.keyCode == 37) {
+        this.camera.rotation.z = -0.1;
+        if (this.camera.position.x < 20 && this.camera.position.x > -20)
+          x = this.camera.position.x + (this.delta * -250);
+        else
+          x = this.camera.position.x + (this.delta * 130);
+
+        TweenMax.to(this.camera.position, 0.5, { x: x });
+      }
+      else if (this.keyCode == 39) {
+        this.camera.rotation.z = 0.1;
+        if (this.camera.position.x < 20 && this.camera.position.x > -20)
+          x = this.camera.position.x + (this.delta * 250);
+        else
+          x = this.camera.position.x + (this.delta * -130);
+
+        TweenMax.to(this.camera.position, 0.5, { x: x });
+      }
+    }
+    else if (this.keyUp) {
+      if (this.keyCode == 37) {
+        this.camera.rotation.z = 0;
+      }
+      else if (this.keyCode == 39) {
+        this.camera.rotation.z = 0
+      }
+    }
     this.renderer.render(this.scene, this.camera);
+
   }
 
   start() {
