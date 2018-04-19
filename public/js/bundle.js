@@ -56549,53 +56549,63 @@ var Game = function () {
     };
 
     this.update = function () {
-      requestAnimationFrame(_this.update);
-      _this.delta = _this.clock.getDelta();
-      _this.tracker += _this.speed;
-      _this.worlds[0].world.position.z += _this.speed;
-      _this.worlds[0].updateTreeLocation(_this.speed, _this.camera);
-      _this.worlds[1].world.position.z += _this.speed;
-      _this.worlds[1].updateTreeLocation(_this.speed, _this.camera);
-      if (_this.tracker >= _this.world1.renderFloor) {
-        _this.pos.z = _this.worlds[1].world.position.z;
-        var temp = new _world2.default(_this.scene, _this.tree, _this.pos);
-        _this.worlds.push(temp);
-        _this.tracker = 0;
-      }
-      if (_this.worlds.length > 2) {
-        _this.worlds[0].removeWorld();
-        _this.worlds.shift();
-      }
-
-      if (_this.keyDown) {
-        var x = void 0;
-        if (_this.keyCode == 37) {
-          _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: -0.2 });
-          if (_this.camera.position.x < 20 && _this.camera.position.x > -20) x = _this.camera.position.x + _this.delta * -250;else x = _this.camera.position.x + _this.delta * 130;
-
-          _gsap.TweenLite.to(_this.camera.position, 0.5, { x: x });
-        } else if (_this.keyCode == 39) {
-          _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0.2 });
-          if (_this.camera.position.x < 20 && _this.camera.position.x > -20) x = _this.camera.position.x + _this.delta * 250;else x = _this.camera.position.x + _this.delta * -130;
-
-          _gsap.TweenLite.to(_this.camera.position, 0.5, { x: x });
+      if (_this.speed <= 2) _this.speed += 0.00034;
+      if (!_this.hit) {
+        requestAnimationFrame(_this.update);
+        _this.delta = _this.clock.getDelta();
+        _this.tracker += _this.speed;
+        _this.worlds[0].world.position.z += _this.speed;
+        _this.worlds[1].world.position.z += _this.speed;
+        _this.updateTreeLocation();
+        if (_this.tracker >= _this.world1.renderFloor) {
+          _this.tracker = 0;
+          _this.pos.z = -350;
+          var temp = new _world2.default(_this.scene, _this.tree, _this.pos);
+          temp.renderWorld();
+          _this.worlds.push(temp);
         }
-      } else if (_this.keyUp) {
-        if (_this.keyCode == 37) {
-          _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0 });
-        } else if (_this.keyCode == 39) {
-          _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0 });
+        if (_this.worlds.length > 2) {
+          _this.worlds[0].removeWorld();
+          _this.worlds.shift();
         }
+
+        if (_this.keyDown) {
+          var x = void 0;
+          if (_this.keyCode == 37) {
+            _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: -0.2 });
+            if (_this.camera.position.x < 20 && _this.camera.position.x > -20) x = _this.camera.position.x + _this.delta * -250;else x = _this.camera.position.x + _this.delta * 130;
+
+            _gsap.TweenLite.to(_this.camera.position, 0.5, { x: x });
+          } else if (_this.keyCode == 39) {
+            _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0.2 });
+            if (_this.camera.position.x < 20 && _this.camera.position.x > -20) x = _this.camera.position.x + _this.delta * 250;else x = _this.camera.position.x + _this.delta * -130;
+
+            _gsap.TweenLite.to(_this.camera.position, 0.5, { x: x });
+          }
+        } else if (_this.keyUp) {
+          if (_this.keyCode == 37) {
+            _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0 });
+          } else if (_this.keyCode == 39) {
+            _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0 });
+          }
+        }
+      } else {
+        //Add game over screen
       }
       _this.renderer.render(_this.scene, _this.camera);
     };
 
     this.tree = tree;
+    this.trees = [];
+    for (var i = 0; i < 20; i++) {
+      this.trees.push(this.tree.clone());
+    }
     this.sceneWidth = width;
     this.sceneHeight = height;
     this.clock = new _three.Clock();
     this.keyDown = false;
     this.keyUp = false;
+    this.hit = false;
   }
 
   _createClass(Game, [{
@@ -56609,7 +56619,7 @@ var Game = function () {
       this.pos = { x: 0, y: 0, z: -180 + -400 };
       this.world2 = new _world2.default(this.scene, this.tree, this.pos);
       this.worlds = [this.world1, this.world2];
-      this.speed = 0.8;
+      this.speed = 0.2;
       this.tracker = 0;
 
       this.camera = new _three.PerspectiveCamera(60, this.sceneWidth / this.sceneHeight, 0.1, 1000);
@@ -56625,7 +56635,39 @@ var Game = function () {
       this.scene = this.light.renderLight();
       this.scene = this.world1.renderWorld();
       this.scene = this.world2.renderWorld();
+      this.addTreeArray();
       this.clock.start();
+    }
+  }, {
+    key: 'removeTrees',
+    value: function removeTrees() {
+      for (var i = 0; i < this.trees.length; i++) {
+        this.scene.remove(this.trees[i]);
+        this.trees[i] = undefined;
+      }
+    }
+  }, {
+    key: 'addTreeArray',
+    value: function addTreeArray() {
+      for (var i = 0; i < this.trees.length; i++) {
+        this.trees[i].position.x = Math.floor(Math.random() * (8 - -8) + -8);
+        this.trees[i].position.y = 1.6;
+        this.trees[i].position.z = Math.floor(Math.random() * (2 - -300) + -300);
+        console.log(this.trees[i].position);
+        this.scene.add(this.trees[i]);
+      }
+    }
+  }, {
+    key: 'updateTreeLocation',
+    value: function updateTreeLocation() {
+      for (var i = 0; i < this.trees.length; i++) {
+        this.trees[i].position.z += this.speed;
+        if (this.trees[i].position.z > this.camera.position.z - 0.5 && this.trees[i].position.z < this.camera.position.z + 0.5 && this.trees[i].position.x > this.camera.position.x - 0.5 && this.trees[i].position.x < this.camera.position.x + 0.5) this.hit = true;
+        if (this.trees[i].position.z >= this.camera.position.z) {
+          this.trees[i].position.z = -200;
+          this.trees[i].position.x = Math.random() * (15 - -15) + -15;
+        }
+      }
     }
   }, {
     key: 'start',
@@ -56804,8 +56846,6 @@ var World = function () {
     this.plane.applyMatrix(new _three.Matrix4().makeRotationX(-Math.PI / 2));
     this.material = new _three.MeshStandardMaterial({ color: 0xffffff, shading: _three.FlatShading });
     this.land = new _three.Mesh(this.plane, this.material);
-    this.tree = tree;
-    this.trees = [];
     this.renderFloor = 400;
     this.world = new _three.Mesh(this.plane, this.material);
     for (var i = 0; i < this.world.geometry.vertices.length; i++) {
@@ -56822,40 +56862,11 @@ var World = function () {
       this.world.geometry.dispose();
       this.material.dispose();
       this.world = undefined;
-      this.removeTrees();
-    }
-  }, {
-    key: 'removeTrees',
-    value: function removeTrees() {
-      for (var i = 0; i < this.trees.length; i++) {
-        this.scene.remove(this.trees[i]);
-        this.trees[i] = undefined;
-      }
-    }
-  }, {
-    key: 'addTreeArray',
-    value: function addTreeArray() {
-      for (var i = 0; i < this.trees.length; i++) {
-        this.scene.add(this.trees[i]);
-      }
-    }
-  }, {
-    key: 'updateTreeLocation',
-    value: function updateTreeLocation(speed, camera) {
-      for (var i = 0; i < this.trees.length; i++) {
-        this.trees[i].position.z += speed;
-        if (this.trees[i].position.z > camera.position.z - 0.5 && this.trees[i].position.z < camera.position.z + 0.5 && this.trees[i].position.x > camera.position.x - 0.5 && this.trees[i].position.x < camera.position.x + 0.5) console.log("HIT!!");
-        if (this.trees[i].position.z >= camera.position.z) {
-          this.trees[i].position.z = -200;
-          this.trees[i].position.x = Math.random() * (15 - -15) + -15;
-        }
-      }
     }
   }, {
     key: 'renderWorld',
     value: function renderWorld() {
       this.scene.add(this.world);
-      this.addTreeArray();
       return this.scene;
     }
   }, {
@@ -56872,22 +56883,8 @@ var World = function () {
       for (var i = 0, l = this.world.geometry.vertices.length; i < l; i++) {
         if (i % 10 == 0) {
           this.world.geometry.vertices[i].y = 0;
-        } else if (i % 8 == 0) {
-          this.tree.position.set(this.world.geometry.vertices[i].x, this.world.geometry.vertices[i].y + 1.6, this.world.geometry.vertices[i].z);
-          this.trees.push(this.tree.clone());
         } else this.world.geometry.vertices[i].y = Math.floor(Math.random() * 1.5);
       }
-    }
-  }, {
-    key: 'findYAtVertex',
-    value: function findYAtVertex(pos) {
-      var closest = new _three.Vector3();
-      for (var i = 0, l = this.world.geometry.vertices.length; i < l; i++) {
-        if ((pos.x - this.world.geometry.vertices[i].x > 20 || pos.x - this.world.geometry.vertices[i].x < 20) && (pos.x - this.world.geometry.vertices[i].z > 20 || pos.x - this.world.geometry.vertices[i].z < 20)) {
-          closest = this.world.geometry.vertices[i];
-        }
-      }
-      return closest;
     }
   }]);
 
