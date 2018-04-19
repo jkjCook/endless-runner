@@ -56552,30 +56552,39 @@ var Game = function () {
       requestAnimationFrame(_this.update);
       _this.delta = _this.clock.getDelta();
       _this.tracker += _this.speed;
-      _this.world.world.position.z += _this.speed;
-      _this.world.updateTreeLocation(_this.speed, _this.camera);
-      if (_this.tracker >= _this.world.renderFloor) {
+      _this.worlds[0].world.position.z += _this.speed;
+      _this.worlds[0].updateTreeLocation(_this.speed, _this.camera);
+      _this.worlds[1].world.position.z += _this.speed;
+      _this.worlds[1].updateTreeLocation(_this.speed, _this.camera);
+      if (_this.tracker >= _this.world1.renderFloor) {
+        _this.pos.z = _this.worlds[1].world.position.z;
+        var temp = new _world2.default(_this.scene, _this.tree, _this.pos);
+        _this.worlds.push(temp);
         _this.tracker = 0;
-        _this.world.world.position.set(_this.pos.x, _this.pos.y, -10);
       }
+      if (_this.worlds.length > 2) {
+        _this.worlds[0].removeWorld();
+        _this.worlds.shift();
+      }
+
       if (_this.keyDown) {
         var x = void 0;
         if (_this.keyCode == 37) {
-          _this.camera.rotation.z = -0.1;
+          _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: -0.2 });
           if (_this.camera.position.x < 20 && _this.camera.position.x > -20) x = _this.camera.position.x + _this.delta * -250;else x = _this.camera.position.x + _this.delta * 130;
 
-          _gsap.TweenMax.to(_this.camera.position, 0.5, { x: x });
+          _gsap.TweenLite.to(_this.camera.position, 0.5, { x: x });
         } else if (_this.keyCode == 39) {
-          _this.camera.rotation.z = 0.1;
+          _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0.2 });
           if (_this.camera.position.x < 20 && _this.camera.position.x > -20) x = _this.camera.position.x + _this.delta * 250;else x = _this.camera.position.x + _this.delta * -130;
 
-          _gsap.TweenMax.to(_this.camera.position, 0.5, { x: x });
+          _gsap.TweenLite.to(_this.camera.position, 0.5, { x: x });
         }
       } else if (_this.keyUp) {
         if (_this.keyCode == 37) {
-          _this.camera.rotation.z = 0;
+          _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0 });
         } else if (_this.keyCode == 39) {
-          _this.camera.rotation.z = 0;
+          _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0 });
         }
       }
       _this.renderer.render(_this.scene, _this.camera);
@@ -56596,14 +56605,16 @@ var Game = function () {
       this.light = new _light2.default(this.scene);
       this.fog = new _three.Fog(0x333333, 30, 50);
       this.pos = { x: 0, y: 0, z: -180 };
-      this.world = new _world2.default(this.scene, this.tree, this.pos);
-
+      this.world1 = new _world2.default(this.scene, this.tree, this.pos);
+      this.pos = { x: 0, y: 0, z: -180 + -400 };
+      this.world2 = new _world2.default(this.scene, this.tree, this.pos);
+      this.worlds = [this.world1, this.world2];
       this.speed = 0.8;
       this.tracker = 0;
 
       this.camera = new _three.PerspectiveCamera(60, this.sceneWidth / this.sceneHeight, 0.1, 1000);
       this.camera.position.z = 6.5;
-      this.camera.position.y = 2.5;
+      this.camera.position.y = 1.8;
 
       this.renderer = new _three.WebGLRenderer();
       this.renderer.setSize(this.sceneWidth, this.sceneHeight);
@@ -56612,7 +56623,8 @@ var Game = function () {
       document.onkeyup = this.handleKeyUp;
       this.scene.fog = this.fog;
       this.scene = this.light.renderLight();
-      this.scene = this.world.renderWorld();
+      this.scene = this.world1.renderWorld();
+      this.scene = this.world2.renderWorld();
       this.clock.start();
     }
   }, {
@@ -56794,8 +56806,7 @@ var World = function () {
     this.land = new _three.Mesh(this.plane, this.material);
     this.tree = tree;
     this.trees = [];
-    this.renderFloor = 200;
-    console.log(this.trees);
+    this.renderFloor = 400;
     this.world = new _three.Mesh(this.plane, this.material);
     for (var i = 0; i < this.world.geometry.vertices.length; i++) {
       this.world.geometry.vertices[i].z += pos.z;
@@ -56835,7 +56846,6 @@ var World = function () {
         this.trees[i].position.z += speed;
         if (this.trees[i].position.z > camera.position.z - 0.5 && this.trees[i].position.z < camera.position.z + 0.5 && this.trees[i].position.x > camera.position.x - 0.5 && this.trees[i].position.x < camera.position.x + 0.5) console.log("HIT!!");
         if (this.trees[i].position.z >= camera.position.z) {
-          console.log(this.trees[i].position.z, camera.position.z);
           this.trees[i].position.z = -200;
           this.trees[i].position.x = Math.random() * (15 - -15) + -15;
         }
@@ -56849,6 +56859,14 @@ var World = function () {
       return this.scene;
     }
   }, {
+    key: 'updateWorldPosition',
+    value: function updateWorldPosition(speed) {
+      for (var i = 0; i < this.world.geometry.vertices.length; i++) {
+        this.world.geometry.vertices[i].z += speed;
+      }
+      this.world.position.z += speed;
+    }
+  }, {
     key: 'generateLandGeometry',
     value: function generateLandGeometry() {
       for (var i = 0, l = this.world.geometry.vertices.length; i < l; i++) {
@@ -56857,8 +56875,19 @@ var World = function () {
         } else if (i % 8 == 0) {
           this.tree.position.set(this.world.geometry.vertices[i].x, this.world.geometry.vertices[i].y + 1.6, this.world.geometry.vertices[i].z);
           this.trees.push(this.tree.clone());
-        } else this.world.geometry.vertices[i].y = Math.floor(Math.random() * 2.5);
+        } else this.world.geometry.vertices[i].y = Math.floor(Math.random() * 1.5);
       }
+    }
+  }, {
+    key: 'findYAtVertex',
+    value: function findYAtVertex(pos) {
+      var closest = new _three.Vector3();
+      for (var i = 0, l = this.world.geometry.vertices.length; i < l; i++) {
+        if ((pos.x - this.world.geometry.vertices[i].x > 20 || pos.x - this.world.geometry.vertices[i].x < 20) && (pos.x - this.world.geometry.vertices[i].z > 20 || pos.x - this.world.geometry.vertices[i].z < 20)) {
+          closest = this.world.geometry.vertices[i];
+        }
+      }
+      return closest;
     }
   }]);
 
