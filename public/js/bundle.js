@@ -56522,6 +56522,10 @@ var _world = require('./world');
 
 var _world2 = _interopRequireDefault(_world);
 
+var _player = require('./player');
+
+var _player2 = _interopRequireDefault(_player);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -56536,19 +56540,8 @@ var Game = function () {
 
     _classCallCheck(this, Game);
 
-    this.handleKeyUp = function (event) {
-      _this.keyUp = true;
-      _this.keyDown = false;
-      _this.keyCode = event.keyCode;
-    };
-
-    this.handleKeyPress = function (event) {
-      _this.keyDown = true;
-      _this.keyUp = false;
-      _this.keyCode = event.keyCode;
-    };
-
     this.update = function () {
+      //this.controls.update();
       if (_this.speed <= 2) _this.speed += 0.00034;
       if (!_this.hit) {
         requestAnimationFrame(_this.update);
@@ -56568,31 +56561,11 @@ var Game = function () {
           _this.worlds[0].removeWorld();
           _this.worlds.shift();
         }
-
-        if (_this.keyDown) {
-          var x = void 0;
-          if (_this.keyCode == 37) {
-            _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: -0.2 });
-            if (_this.camera.position.x < 20 && _this.camera.position.x > -20) x = _this.camera.position.x + _this.delta * -250;else x = _this.camera.position.x + _this.delta * 130;
-
-            _gsap.TweenLite.to(_this.camera.position, 0.5, { x: x });
-          } else if (_this.keyCode == 39) {
-            _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0.2 });
-            if (_this.camera.position.x < 20 && _this.camera.position.x > -20) x = _this.camera.position.x + _this.delta * 250;else x = _this.camera.position.x + _this.delta * -130;
-
-            _gsap.TweenLite.to(_this.camera.position, 0.5, { x: x });
-          }
-        } else if (_this.keyUp) {
-          if (_this.keyCode == 37) {
-            _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0 });
-          } else if (_this.keyCode == 39) {
-            _gsap.TweenLite.to(_this.camera.rotation, 0.5, { z: 0 });
-          }
-        }
+        _this.player.move(_this.delta);
       } else {
         //Add game over screen
       }
-      _this.renderer.render(_this.scene, _this.camera);
+      _this.renderer.render(_this.scene, _this.player.camera);
     };
 
     this.tree = tree;
@@ -56603,9 +56576,6 @@ var Game = function () {
     this.sceneWidth = width;
     this.sceneHeight = height;
     this.clock = new _three.Clock();
-    this.keyDown = false;
-    this.keyUp = false;
-    this.hit = false;
   }
 
   _createClass(Game, [{
@@ -56614,37 +56584,30 @@ var Game = function () {
       this.scene = new _three.Scene();
       this.light = new _light2.default(this.scene);
       this.fog = new _three.Fog(0x333333, 30, 50);
+      this.player = new _player2.default(this.sceneWidth, this.sceneHeight);
+      //this.controls = new OrbitControls( this.player.camera );
+      this.speed = 0.2;
+
+      this.tracker = 0;
       this.pos = { x: 0, y: 0, z: -180 };
       this.world1 = new _world2.default(this.scene, this.tree, this.pos);
       this.pos = { x: 0, y: 0, z: -180 + -400 };
       this.world2 = new _world2.default(this.scene, this.tree, this.pos);
       this.worlds = [this.world1, this.world2];
-      this.speed = 0.2;
-      this.tracker = 0;
-
-      this.camera = new _three.PerspectiveCamera(60, this.sceneWidth / this.sceneHeight, 0.1, 1000);
-      this.camera.position.z = 6.5;
-      this.camera.position.y = 1.8;
 
       this.renderer = new _three.WebGLRenderer();
       this.renderer.setSize(this.sceneWidth, this.sceneHeight);
+
       document.body.appendChild(this.renderer.domElement);
-      document.onkeydown = this.handleKeyPress;
-      document.onkeyup = this.handleKeyUp;
+      document.onkeydown = this.player.handleKeyPress;
+      document.onkeyup = this.player.handleKeyUp;
+
       this.scene.fog = this.fog;
       this.scene = this.light.renderLight();
       this.scene = this.world1.renderWorld();
       this.scene = this.world2.renderWorld();
       this.addTreeArray();
       this.clock.start();
-    }
-  }, {
-    key: 'removeTrees',
-    value: function removeTrees() {
-      for (var i = 0; i < this.trees.length; i++) {
-        this.scene.remove(this.trees[i]);
-        this.trees[i] = undefined;
-      }
     }
   }, {
     key: 'addTreeArray',
@@ -56657,13 +56620,15 @@ var Game = function () {
         this.scene.add(this.trees[i]);
       }
     }
+    //detects if tree has moved past the player or has collided with the player
+
   }, {
     key: 'updateTreeLocation',
     value: function updateTreeLocation() {
       for (var i = 0; i < this.trees.length; i++) {
         this.trees[i].position.z += this.speed;
-        if (this.trees[i].position.z > this.camera.position.z - 0.5 && this.trees[i].position.z < this.camera.position.z + 0.5 && this.trees[i].position.x > this.camera.position.x - 0.5 && this.trees[i].position.x < this.camera.position.x + 0.5) this.hit = true;
-        if (this.trees[i].position.z >= this.camera.position.z) {
+        if (this.trees[i].position.z > this.player.camera.position.z - 0.5 && this.trees[i].position.z < this.player.camera.position.z + 0.5 && this.trees[i].position.x > this.player.camera.position.x - 0.5 && this.trees[i].position.x < this.player.camera.position.x + 0.5) this.hit = true;
+        if (this.trees[i].position.z >= this.player.camera.position.z) {
           this.trees[i].position.z = -200;
           this.trees[i].position.x = Math.random() * (15 - -15) + -15;
         }
@@ -56682,7 +56647,7 @@ var Game = function () {
 
 exports.default = Game;
 
-},{"./light":7,"./tree":9,"./world":10,"gsap":1,"three":3,"three-orbit-controls":2}],7:[function(require,module,exports){
+},{"./light":7,"./player":9,"./tree":10,"./world":11,"gsap":1,"three":3,"three-orbit-controls":2}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56743,7 +56708,81 @@ tree.loadMat().then(function (mat) {
   });
 });
 
-},{"./game":6,"./tree":9}],9:[function(require,module,exports){
+},{"./game":6,"./tree":10}],9:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _three = require('three');
+
+var _gsap = require('gsap');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Player = function () {
+  function Player(width, height) {
+    var _this = this;
+
+    _classCallCheck(this, Player);
+
+    this.handleKeyUp = function (event) {
+      _this.keyUp = true;
+      _this.keyDown = false;
+      _this.keyCode = event.keyCode;
+    };
+
+    this.handleKeyPress = function (event) {
+      _this.keyDown = true;
+      _this.keyUp = false;
+      _this.keyCode = event.keyCode;
+    };
+
+    this.sceneHeight = height;
+    this.sceneWidth = width;
+    this.keyDown = false;
+    this.keyUp = false;
+    this.hit = false;
+    this.camera = new _three.PerspectiveCamera(60, this.sceneWidth / this.sceneHeight, 0.1, 1000);
+    this.camera.position.z = 6.5;
+    this.camera.position.y = 1.8;
+  }
+
+  _createClass(Player, [{
+    key: 'move',
+    value: function move(delta) {
+      if (this.keyDown) {
+        var x = void 0;
+        if (this.keyCode == 37) {
+          _gsap.TweenLite.to(this.camera.rotation, 0.5, { z: -0.2 });
+          if (this.camera.position.x < 20 && this.camera.position.x > -20) x = this.camera.position.x + delta * -250;else x = this.camera.position.x + delta * 130;
+
+          _gsap.TweenLite.to(this.camera.position, 0.5, { x: x });
+        } else if (this.keyCode == 39) {
+          _gsap.TweenLite.to(this.camera.rotation, 0.5, { z: 0.2 });
+          if (this.camera.position.x < 20 && this.camera.position.x > -20) x = this.camera.position.x + delta * 250;else x = this.camera.position.x + delta * -130;
+
+          _gsap.TweenLite.to(this.camera.position, 0.5, { x: x });
+        }
+      } else if (this.keyUp) {
+        if (this.keyCode == 37) {
+          _gsap.TweenLite.to(this.camera.rotation, 0.5, { z: 0 });
+        } else if (this.keyCode == 39) {
+          _gsap.TweenLite.to(this.camera.rotation, 0.5, { z: 0 });
+        }
+      }
+    }
+  }]);
+
+  return Player;
+}();
+
+exports.default = Player;
+
+},{"gsap":1,"three":3}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56815,7 +56854,7 @@ var Tree = function () {
 
 exports.default = Tree;
 
-},{"./MTLLoader":4,"./OBJLoader":5,"three":3}],10:[function(require,module,exports){
+},{"./MTLLoader":4,"./OBJLoader":5,"three":3}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56893,4 +56932,4 @@ var World = function () {
 
 exports.default = World;
 
-},{"./tree":9,"three":3}]},{},[8]);
+},{"./tree":10,"three":3}]},{},[8]);

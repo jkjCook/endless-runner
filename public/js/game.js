@@ -7,6 +7,7 @@ import { TweenLite } from 'gsap';
 import Light from './light';
 import Tree from './tree';
 import World from './world';
+import Player from './player';
 
 class Game {
   constructor(width, height, tree) {
@@ -18,32 +19,30 @@ class Game {
     this.sceneWidth = width;
     this.sceneHeight = height;
     this.clock = new Clock();
-    this.keyDown = false;
-    this.keyUp = false;
-    this.hit = false;
   }
 
   createScene() {
     this.scene = new Scene();
     this.light = new Light(this.scene);
     this.fog = new Fog(0x333333, 30, 50);
+    this.player = new Player(this.sceneWidth, this.sceneHeight);
+    //this.controls = new OrbitControls( this.player.camera );
+    this.speed = 0.2;
+
+    this.tracker = 0;
     this.pos = { x: 0, y: 0, z: -180 };
     this.world1 = new World(this.scene, this.tree, this.pos);
     this.pos = { x: 0, y: 0, z: (-180 + -400) };
     this.world2 = new World(this.scene, this.tree, this.pos);
     this.worlds = [this.world1, this.world2];
-    this.speed = 0.2;
-    this.tracker = 0;
-
-    this.camera = new PerspectiveCamera(60, this.sceneWidth / this.sceneHeight, 0.1, 1000);
-    this.camera.position.z = 6.5;
-    this.camera.position.y = 1.8;
 
     this.renderer = new WebGLRenderer();
     this.renderer.setSize(this.sceneWidth, this.sceneHeight);
+
     document.body.appendChild(this.renderer.domElement);
-    document.onkeydown = this.handleKeyPress;
-    document.onkeyup = this.handleKeyUp;
+    document.onkeydown = this.player.handleKeyPress;
+    document.onkeyup = this.player.handleKeyUp;
+
     this.scene.fog = this.fog;
     this.scene = this.light.renderLight();
     this.scene = this.world1.renderWorld();
@@ -51,12 +50,6 @@ class Game {
     this.addTreeArray();
     this.clock.start();
 
-  }
-  removeTrees() {
-    for (let i = 0; i < this.trees.length; i++) {
-      this.scene.remove(this.trees[i]);
-      this.trees[i] = undefined;
-    }
   }
 
   addTreeArray() {
@@ -68,31 +61,24 @@ class Game {
       this.scene.add(this.trees[i]);
     }
   }
-
+  //detects if tree has moved past the player or has collided with the player
   updateTreeLocation() {
     for (let i = 0; i < this.trees.length; i++) {
       this.trees[i].position.z += this.speed;
-      if (this.trees[i].position.z > this.camera.position.z - 0.5 && this.trees[i].position.z < this.camera.position.z + 0.5 &&
-        this.trees[i].position.x > this.camera.position.x - 0.5 && this.trees[i].position.x < this.camera.position.x + 0.5)
+      if (this.trees[i].position.z > this.player.camera.position.z - 0.5 &&
+        this.trees[i].position.z < this.player.camera.position.z + 0.5 &&
+        this.trees[i].position.x > this.player.camera.position.x - 0.5 &&
+        this.trees[i].position.x < this.player.camera.position.x + 0.5)
         this.hit = true;
-      if (this.trees[i].position.z >= this.camera.position.z) {
+      if (this.trees[i].position.z >= this.player.camera.position.z) {
         this.trees[i].position.z = -200;
         this.trees[i].position.x = Math.random() * (15 - -15) + -15;
       }
     }
   }
-  handleKeyUp = (event) => {
-    this.keyUp = true;
-    this.keyDown = false;
-    this.keyCode = event.keyCode;
-  }
-  handleKeyPress = (event) => {
-    this.keyDown = true;
-    this.keyUp = false;
-    this.keyCode = event.keyCode;
-  }
 
   update = () => {
+    //this.controls.update();
     if (this.speed <= 2) this.speed += 0.00034;
     if (!this.hit) {
       requestAnimationFrame(this.update);
@@ -112,41 +98,12 @@ class Game {
         this.worlds[0].removeWorld();
         this.worlds.shift();
       }
-
-      if (this.keyDown) {
-        let x;
-        if (this.keyCode == 37) {
-          TweenLite.to(this.camera.rotation, 0.5, { z: -0.2 });
-          if (this.camera.position.x < 20 && this.camera.position.x > -20)
-            x = this.camera.position.x + (this.delta * -250);
-          else
-            x = this.camera.position.x + (this.delta * 130);
-
-          TweenLite.to(this.camera.position, 0.5, { x: x });
-        }
-        else if (this.keyCode == 39) {
-          TweenLite.to(this.camera.rotation, 0.5, { z: 0.2 });
-          if (this.camera.position.x < 20 && this.camera.position.x > -20)
-            x = this.camera.position.x + (this.delta * 250);
-          else
-            x = this.camera.position.x + (this.delta * -130);
-
-          TweenLite.to(this.camera.position, 0.5, { x: x });
-        }
-      }
-      else if (this.keyUp) {
-        if (this.keyCode == 37) {
-          TweenLite.to(this.camera.rotation, 0.5, { z: 0 });
-        }
-        else if (this.keyCode == 39) {
-          TweenLite.to(this.camera.rotation, 0.5, { z: 0 });
-        }
-      }
+      this.player.move(this.delta);
     }
     else {
       //Add game over screen
     }
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.render(this.scene, this.player.camera);
 
   }
 
