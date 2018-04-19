@@ -66,10 +66,11 @@ class Game {
     this.worlds[1].world.position.z += this.speed;
     this.worlds[1].updateTreeLocation(this.speed, this.camera);
     if (this.tracker >= this.world1.renderFloor) {
-      this.pos.z = this.worlds[1].world.position.z;
-      let temp = new World(this.scene, this.tree, this.pos);
-      this.worlds.push(temp);
       this.tracker = 0;
+      this.pos.z = -350;
+      let temp = new World(this.scene, this.tree, this.pos);
+      temp.renderWorld();
+      this.worlds.push(temp);
     }
     if(this.worlds.length > 2) {
       this.worlds[0].removeWorld();
