@@ -2,12 +2,14 @@
 const THREE = require('three');
 const OrbitControls = require('three-orbit-controls')(THREE);
 
-import { Scene, PerspectiveCamera, WebGLRenderer, MeshBasicMaterial, Fog, Vector3, Clock } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, MeshBasicMaterial, Fog,
+  Vector3, Clock, SphereGeometry, MeshLambertMaterial, Mesh } from 'three';
 import { TweenLite } from 'gsap';
 import Light from './light';
 import Tree from './tree';
 import World from './world';
 import Player from './player';
+import Gem from './gem';
 
 class Game {
   constructor(width, height, tree) {
@@ -26,9 +28,14 @@ class Game {
     this.light = new Light(this.scene);
     this.fog = new Fog(0x333333, 30, 50);
     this.player = new Player(this.sceneWidth, this.sceneHeight);
-    //this.controls = new OrbitControls( this.player.camera );
+    //this.controls = new OrbitControls(this.player.camera);
+    this.skyGeometry = new SphereGeometry(1000, 25, 25);
+    this.skyMaterial = new MeshLambertMaterial({ color: 0x0000ff });
+    this.sky = new Mesh(this.skyGeometry, this.skyMaterial);
+    this.sky.position.set(0, 0, 0);
+    this.gem = new Gem(this.scene);
     this.speed = 0.2;
-
+    this.score = 0;
     this.tracker = 0;
     this.pos = { x: 0, y: 0, z: -180 };
     this.world1 = new World(this.scene, this.tree, this.pos);
@@ -36,7 +43,7 @@ class Game {
     this.world2 = new World(this.scene, this.tree, this.pos);
     this.worlds = [this.world1, this.world2];
 
-    this.renderer = new WebGLRenderer();
+    this.renderer = new WebGLRenderer({ alpha: true });
     this.renderer.setSize(this.sceneWidth, this.sceneHeight);
 
     document.body.appendChild(this.renderer.domElement);
@@ -44,9 +51,11 @@ class Game {
     document.onkeyup = this.player.handleKeyUp;
 
     this.scene.fog = this.fog;
+    this.scene.add(this.sky);
     this.scene = this.light.renderLight();
     this.scene = this.world1.renderWorld();
     this.scene = this.world2.renderWorld();
+    this.scene = this.gem.addGem();
     this.addTreeArray();
     this.clock.start();
 
@@ -61,18 +70,42 @@ class Game {
       this.scene.add(this.trees[i]);
     }
   }
+  updateGemLocation() {
+    if (this.gem.gem.position.y > 2)
+      this.gem.up = false;
+    else if (this.gem.gem.position.y < 1.3)
+      this.gem.up = true;
+    if (this.gem.up)
+      this.gem.gem.position.y += 0.002;
+    else
+      this.gem.gem.position.y -= 0.002;
+    this.gem.gem.position.z += this.speed;
+    if (this.gem.gem.position.z > this.player.camera.position.z - 1 &&
+      this.gem.gem.position.z < this.player.camera.position.z + 1 &&
+      this.gem.gem.position.x > this.player.camera.position.x - 1 &&
+      this.gem.gem.position.x < this.player.camera.position.x + 1) {
+      this.score += 1;
+      this.gem.gem.position.z = -200;
+      this.gem.gem.position.x = Math.random() * (10 - -10) + -10;
+    }
+
+    if (this.gem.gem.position.z >= this.player.camera.position.z) {
+      this.gem.gem.position.z = -200;
+      this.gem.gem.position.x = Math.random() * (10 - -10) + -10;
+    }
+  }
   //detects if tree has moved past the player or has collided with the player
   updateTreeLocation() {
     for (let i = 0; i < this.trees.length; i++) {
       this.trees[i].position.z += this.speed;
-      if (this.trees[i].position.z > this.player.camera.position.z - 0.5 &&
-        this.trees[i].position.z < this.player.camera.position.z + 0.5 &&
-        this.trees[i].position.x > this.player.camera.position.x - 0.5 &&
-        this.trees[i].position.x < this.player.camera.position.x + 0.5)
+      if (this.trees[i].position.z > this.player.camera.position.z - 1 &&
+        this.trees[i].position.z < this.player.camera.position.z + 1 &&
+        this.trees[i].position.x > this.player.camera.position.x - 1 &&
+        this.trees[i].position.x < this.player.camera.position.x + 1)
         this.hit = true;
       if (this.trees[i].position.z >= this.player.camera.position.z) {
         this.trees[i].position.z = -200;
-        this.trees[i].position.x = Math.random() * (15 - -15) + -15;
+        this.trees[i].position.x = Math.random() * (10 - -10) + -10;
       }
     }
   }
@@ -87,6 +120,7 @@ class Game {
       this.worlds[0].world.position.z += this.speed;
       this.worlds[1].world.position.z += this.speed;
       this.updateTreeLocation();
+      this.updateGemLocation();
       if (this.tracker >= this.world1.renderFloor) {
         this.tracker = 0;
         this.pos.z = -350;
@@ -101,7 +135,7 @@ class Game {
       this.player.move(this.delta);
     }
     else {
-      //Add game over screen
+      //Add game over
     }
     this.renderer.render(this.scene, this.player.camera);
 

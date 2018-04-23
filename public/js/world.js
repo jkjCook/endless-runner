@@ -7,7 +7,7 @@ import Tree from './tree';
 class World {
   constructor(scene, tree, pos = { x: 0, y: 0, z: 0 }) { //game scene, tree object and rendering position
     this.scene = scene;
-    this.plane = new PlaneGeometry(50, 400, 10, 10);
+    this.plane = new PlaneGeometry(30, 400, 10, 10);
     this.plane.applyMatrix(new Matrix4().makeRotationX(- Math.PI / 2));
     this.material = new MeshStandardMaterial({ color: 0xffffff, shading: FlatShading });
     this.land = new Mesh(this.plane, this.material);
@@ -38,8 +38,11 @@ class World {
     this.world.position.z += speed;
   }
   generateLandGeometry() {
-    for (var i = 0, l = this.world.geometry.vertices.length; i < l; i++) {
-      if (i % 10 == 0) {
+    for (var i = 0; i < this.world.geometry.vertices.length; i++) {
+      if (i % Math.sqrt(this.world.geometry.vertices.length) == 0) {
+        this.world.geometry.vertices[i].y = 0;
+      }
+      else if(i < Math.sqrt(this.world.geometry.vertices.length)){
         this.world.geometry.vertices[i].y = 0;
       }
       else
