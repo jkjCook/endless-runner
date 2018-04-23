@@ -13,6 +13,7 @@
     "@types/three": "^0.91.7",
     "express": "^4.16.3",
     "gsap": "^1.20.4",
+    "howler": "^2.0.9",
     "three": "^0.91.0",
     "three-orbit-controls": "^82.1.0"
   },

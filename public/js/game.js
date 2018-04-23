@@ -10,6 +10,7 @@ import Tree from './tree';
 import World from './world';
 import Player from './player';
 import Gem from './gem';
+import Sound from './sound';
 
 class Game {
   constructor(width, height, tree) {
@@ -21,6 +22,7 @@ class Game {
     this.sceneWidth = width;
     this.sceneHeight = height;
     this.clock = new Clock();
+    this.sound = new Sound();
   }
 
   createScene() {
@@ -87,6 +89,7 @@ class Game {
       this.score += 1;
       this.gem.gem.position.z = -200;
       this.gem.gem.position.x = Math.random() * (10 - -10) + -10;
+      this.sound.collect.play();
     }
 
     if (this.gem.gem.position.z >= this.player.camera.position.z) {
