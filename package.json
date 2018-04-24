@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "browserify public/js/main.js -t babelify --outfile public/js/bundle.js && nodemon server.js",
-    "bundle": "browserify public/js/main.js -t babelify --outfile public/js/bundle.js"
+    "bundle": "browserify public/js/main.js -t babelify --outfile public/js/bundle.js",
+    "build": "browserify public/js/main.js -t babelify --outfile public/js/bundle.js && uglifyjs public/js/bundle.js -o public/js/bundle.min.js"
   },
   "author": "Justin Cook",
   "license": "ISC",
@@ -24,7 +25,8 @@
     "babel-preset-env": "^1.6.1",
     "babelify": "^8.0.0",
     "browserify": "^16.1.1",
-    "nodemon": "^1.17.3"
+    "nodemon": "^1.17.3",
+    "uglify-js": "^3.3.22"
   },
   "nodemonConfig": {
     "ignore": [
