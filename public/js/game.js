@@ -16,13 +16,14 @@ class Game {
   constructor(width, height, tree) {
     this.tree = tree;
     this.trees = [];
-    for (let i = 0; i < 20; i++) {
-      this.trees.push(this.tree.clone());
-    }
     this.sceneWidth = width;
     this.sceneHeight = height;
     this.clock = new Clock();
     this.sound = new Sound();
+    for (let i = 0; i < 20; i++) {
+      this.trees.push(this.tree.clone());
+    }
+
   }
 
   createScene() {
@@ -31,26 +32,18 @@ class Game {
     this.fog = new Fog(0x333333, 30, 50);
     this.player = new Player(this.sceneWidth, this.sceneHeight);
     //this.controls = new OrbitControls(this.player.camera);
-    this.skyGeometry = new SphereGeometry(1000, 25, 25);
-    this.skyMaterial = new MeshLambertMaterial({ color: 0x0000ff });
-    this.sky = new Mesh(this.skyGeometry, this.skyMaterial);
-    this.sky.position.set(0, 0, 0);
     this.gem = new Gem(this.scene);
     this.speed = 0.2;
     this.score = 0;
     this.tracker = 0;
     this.pos = { x: 0, y: 0, z: -180 };
     this.world1 = new World(this.scene, this.tree, this.pos);
-    this.pos = { x: 0, y: 0, z: (-180 + -400) };
+    this.pos.z = (-180 + -400);
     this.world2 = new World(this.scene, this.tree, this.pos);
     this.worlds = [this.world1, this.world2];
 
-    this.renderer = new WebGLRenderer({ alpha: true });
+    this.renderer = new WebGLRenderer();
     this.renderer.setSize(this.sceneWidth, this.sceneHeight);
-
-    document.body.appendChild(this.renderer.domElement);
-    document.onkeydown = this.player.handleKeyPress;
-    document.onkeyup = this.player.handleKeyUp;
 
     this.scene.fog = this.fog;
     this.scene.add(this.sky);
@@ -61,6 +54,9 @@ class Game {
     this.addTreeArray();
     this.clock.start();
 
+    document.body.appendChild(this.renderer.domElement);
+    document.onkeydown = this.player.handleKeyPress;
+    document.onkeyup = this.player.handleKeyUp;
   }
 
   addTreeArray() {
@@ -72,6 +68,7 @@ class Game {
       this.scene.add(this.trees[i]);
     }
   }
+
   updateGemLocation() {
     if (this.gem.gem.position.y > 2)
       this.gem.up = false;
@@ -91,7 +88,6 @@ class Game {
       this.gem.gem.position.x = Math.random() * (10 - -10) + -10;
       this.sound.collect.play();
     }
-
     if (this.gem.gem.position.z >= this.player.camera.position.z) {
       this.gem.gem.position.z = -200;
       this.gem.gem.position.x = Math.random() * (10 - -10) + -10;
