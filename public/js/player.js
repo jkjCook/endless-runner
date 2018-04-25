@@ -28,19 +28,19 @@ class Player {
       let x;
       if (this.keyCode == 37) {
         TweenLite.to(this.camera.rotation, 0.5, { z: -0.2 });
-        if (this.camera.position.x + (delta * -250) < 12 && this.camera.position.x + (delta * -250) > -12)
-          x = this.camera.position.x + (delta * -250);
+        if (this.camera.position.x + (delta * -150) < 12 && this.camera.position.x + (delta * -150) > -12)
+          x = this.camera.position.x + (delta * -200);
         else
-          x = this.camera.position.x = -12;
+          x = this.camera.position.x = -12.5;
 
         TweenLite.to(this.camera.position, 0.5, { x: x });
       }
       else if (this.keyCode == 39) {
         TweenLite.to(this.camera.rotation, 0.5, { z: 0.2 });
-        if (this.camera.position.x + (delta * 250) < 12 && this.camera.position.x + (delta * 250) > -12)
+        if (this.camera.position.x + (delta * 150) < 12 && this.camera.position.x + (delta * 150) > -12)
           x = this.camera.position.x + (delta * 250);
         else
-          x = this.camera.position.x = 12;
+          x = this.camera.position.x = 12.5;
 
         TweenLite.to(this.camera.position, 0.5, { x: x });
       }

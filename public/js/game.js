@@ -127,7 +127,7 @@ class Game {
 
   update = () => {
     //this.controls.update();
-    if (this.speed <= 2) this.speed += 0.00034;
+    if (this.speed <= 1.6) this.speed += 0.00034;
     if (!this.hit) {
       requestAnimationFrame(this.update);
       this.delta = this.clock.getDelta();
@@ -138,7 +138,7 @@ class Game {
       this.updateGemLocation();
       if (this.tracker >= this.world1.renderFloor) {
         this.tracker = 0;
-        this.pos.z = -350;
+        this.pos.z = -330;
         let temp = new World(this.scene, this.tree, this.pos);
         temp.renderWorld();
         this.worlds.push(temp);

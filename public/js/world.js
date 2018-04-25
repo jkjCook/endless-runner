@@ -39,10 +39,8 @@ class World {
   }
   generateLandGeometry() {
     for (var i = 0; i < this.world.geometry.vertices.length; i++) {
-      if (i % Math.sqrt(this.world.geometry.vertices.length) == 0) {
-        this.world.geometry.vertices[i].y = 0;
-      }
-      else if(i < Math.sqrt(this.world.geometry.vertices.length)){
+      if(i < Math.sqrt(this.world.geometry.vertices.length) ||
+       i > (this.world.geometry.vertices.length - Math.sqrt(this.world.geometry.vertices.length))){
         this.world.geometry.vertices[i].y = 0;
       }
       else
