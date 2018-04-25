@@ -16,12 +16,14 @@ class Game {
   constructor(width, height, tree) {
     this.tree = tree;
     this.trees = [];
+    this.bounderyTrees = [];
     this.sceneWidth = width;
     this.sceneHeight = height;
     this.clock = new Clock();
     this.sound = new Sound();
-    for (let i = 0; i < 20; i++) {
-      this.trees.push(this.tree.clone());
+    for (let i = 0; i < 200; i++) {
+      if (i < 20) this.trees.push(this.tree.clone());
+      this.bounderyTrees.push(this.tree.clone());
     }
 
   }
@@ -60,11 +62,19 @@ class Game {
   }
 
   addTreeArray() {
+    for(let i = 0; i < this.bounderyTrees.length; i++) {
+      if(i % 2 == 0)
+        this.bounderyTrees[i].position.x = 13;
+      else
+        this.bounderyTrees[i].position.x = -13;
+      this.bounderyTrees[i].position.y = 1.6;
+      this.bounderyTrees[i].position.z = -(i - 8);
+      this.scene.add(this.bounderyTrees[i]);
+    }
     for (let i = 0; i < this.trees.length; i++) {
       this.trees[i].position.x = Math.floor(Math.random() * (8 - -8) + -8);
       this.trees[i].position.y = 1.6;
       this.trees[i].position.z = Math.floor(Math.random() * (2 - -300) + -300);
-      console.log(this.trees[i].position);
       this.scene.add(this.trees[i]);
     }
   }
@@ -95,6 +105,12 @@ class Game {
   }
   //detects if tree has moved past the player or has collided with the player
   updateTreeLocation() {
+    for(let i = 0; i < this.bounderyTrees.length; i++) {
+      if (this.bounderyTrees[i].position.z >= this.player.camera.position.z) {
+        this.bounderyTrees[i].position.z = -190;
+      }
+      this.bounderyTrees[i].position.z += this.speed;
+    }
     for (let i = 0; i < this.trees.length; i++) {
       this.trees[i].position.z += this.speed;
       if (this.trees[i].position.z > this.player.camera.position.z - 1 &&

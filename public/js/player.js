@@ -23,23 +23,24 @@ class Player {
     this.keyCode = event.keyCode;
   }
   move(delta) {
+    console.log(this.camera.position);
     if (this.keyDown) {
       let x;
       if (this.keyCode == 37) {
         TweenLite.to(this.camera.rotation, 0.5, { z: -0.2 });
-        if (this.camera.position.x < 20 && this.camera.position.x > -20)
+        if (this.camera.position.x + (delta * -250) < 12 && this.camera.position.x + (delta * -250) > -12)
           x = this.camera.position.x + (delta * -250);
         else
-          x = this.camera.position.x + (delta * 130);
+          x = this.camera.position.x = -12;
 
         TweenLite.to(this.camera.position, 0.5, { x: x });
       }
       else if (this.keyCode == 39) {
         TweenLite.to(this.camera.rotation, 0.5, { z: 0.2 });
-        if (this.camera.position.x < 20 && this.camera.position.x > -20)
+        if (this.camera.position.x + (delta * 250) < 12 && this.camera.position.x + (delta * 250) > -12)
           x = this.camera.position.x + (delta * 250);
         else
-          x = this.camera.position.x + (delta * -130);
+          x = this.camera.position.x = 12;
 
         TweenLite.to(this.camera.position, 0.5, { x: x });
       }
