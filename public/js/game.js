@@ -43,7 +43,7 @@ class Game {
     this.pos.z = (-180 + -400);
     this.world2 = new World(this.scene, this.tree, this.pos);
     this.worlds = [this.world1, this.world2];
-
+    this.domScore = document.getElementById('score');
     this.renderer = new WebGLRenderer();
     this.renderer.setSize(this.sceneWidth, this.sceneHeight);
 
@@ -127,6 +127,7 @@ class Game {
 
   update = () => {
     //this.controls.update();
+    this.domScore.innerHTML = this.score;
     if (this.speed <= 1.6) this.speed += 0.00034;
     if (!this.hit) {
       requestAnimationFrame(this.update);
